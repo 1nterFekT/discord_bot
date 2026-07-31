@@ -35,6 +35,7 @@ class User:
                 supabase.table("balances")
                 .select("balance")
                 .eq("user_id", self.user_id)
+                .eq("server_id", self.server_id)
                 .execute()
             )
 
