@@ -1,3 +1,5 @@
+from postgrest.exceptions import APIError
+
 from database.client import supabase
 from utils.logger import logger
 
@@ -10,16 +12,16 @@ def register_server(server_id):
         server_id (any): Id сервера для добавления.
 
     Returns:
-        server_data (dict): Объект с данными сервера из базы данных при успешной регистрации.
+        server data (dict): Объект с данными сервера из базы данных при успешной регистрации.
             * 'server' (dict): Объект с данными сервера из таблицы 'servers' базы данных.
             * 'settings' (dict): Объект с данными настроек сервера из таблицы 'servers_settings' базы данных.
 
-        error_data (dict): Объект с информацией об ошибке, если таковая возникнет.
-            * 'message' (str): Сообщение ошибки.
-            * 'code' (str): Код ошибки.
-            * 'hint' (str): Подсказка ошибки.
-            * 'details' (str): Детали ошибки.
+        error data (dict): Объект с информацией об ошибке.
+            * error (str): Текст ошибки.
+            * message (str): Детали ошибки
     """
+
+    logger.info(f"Попытка регистрации нового сервера | server_id: {server_id}")
 
     try:
         servers_table_response = (
@@ -36,14 +38,26 @@ def register_server(server_id):
             .execute()
         )
 
-        logger.info(f"Новый сервер добавлен в базу данных, server_id: {server_id}")
+        logger.info(f"Новый сервер добавлен в базу данных | server_id: {server_id}")
 
         return {
             "server": servers_table_response.data[0],
             "settings": settings_table_response.data[0],
         }
+
+    except APIError as exc:
+        logger.error(
+            f"Ошибка при регистрации нового сервера: {exc.message} | server_id: {server_id}"
+        )
+
+        return {"error": "Ошибка при обращении к базе данных.", "message": exc.message}
+
     except Exception as exc:
-        return exc
+        logger.error(
+            f"Ошибка при регистрации нового юзера: {exc} | server_id: {server_id}"
+        )
+
+        return {"error": "Внутренняя ошибка", "message": exc}
 
 
 def register_user(user_id, server_id):
@@ -55,16 +69,18 @@ def register_user(user_id, server_id):
         server_id (any): Id сервера для добавления.
 
     Returns:
-        user_data (dict): Объект с данными юзера из базы данных при успешной регистрации.
+        user data (dict): Объект с данными юзера из базы данных при успешной регистрации.
             * 'user' (dict): Объект с данными юзера из таблицы 'users' базы данных.
             * 'balance' (dict): Объект с данными баланса юзера из таблицы 'balances' базы данных.
 
-        error_data (dict): Объект с информацией об ошибке, если таковая возникнет.
-            * 'message' (str): Сообщение ошибки.
-            * 'code' (str): Код ошибки.
-            * 'hint' (str): Подсказка ошибки.
-            * 'details' (str): Детали ошибки.
+        error data (dict): Объект с информацией об ошибке.
+            * error (str): Текст ошибки.
+            * message (str): Детали ошибки
     """
+
+    logger.info(
+        f"Попытка регистрации нового юзера | user_id: {user_id} | server_id: {server_id}"
+    )
 
     try:
         users_table_response = (
@@ -79,12 +95,24 @@ def register_user(user_id, server_id):
         )
 
         logger.info(
-            f"Новый юзер добавлен в базу данных, user_id: {user_id} (баланс прикреплен к server_id: {server_id})"
+            f"Новый юзер добавлен в базу данных | user_id: {user_id} | server_id: {server_id})"
         )
 
         return {
             "user": users_table_response.data[0],
             "balance": balances_table_response.data[0],
         }
+
+    except APIError as exc:
+        logger.error(
+            f"Ошибка при регистрации нового юзера: {exc.message} | user_id: {user_id} | server_id: {server_id}"
+        )
+
+        return {"error": "Ошибка при обращении к базе данных.", "message": exc.message}
+
     except Exception as exc:
-        return exc
+        logger.error(
+            f"Ошибка при регистрации нового юзера: {exc} | user_id: {user_id} | server_id: {server_id}"
+        )
+
+        return {"error": "Внутренняя ошибка", "message": exc}
