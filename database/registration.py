@@ -1,9 +1,5 @@
-from supabase import create_client, Client
-
-from config import SUPABASE_KEY, SUPABASE_URL
+from database.client import supabase
 from utils.logger import logger
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 def register_server(server_id):
@@ -92,7 +88,3 @@ def register_user(user_id, server_id):
         }
     except Exception as exc:
         return exc
-
-
-print(register_server(111))
-print(register_user(222, 111))
