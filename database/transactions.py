@@ -9,7 +9,8 @@ def log_transaction(
     sender_id: str | int,
     receiver_id: str | int,
     amount: int,
-    type: str = "Перевод",
+    sender_type: str = "Перевод",
+    receiver_type: str = "Пополнение",
     comment: str = None,
 ) -> dict:
     """
@@ -32,8 +33,6 @@ def log_transaction(
             * message (str): Детали ошибки
     """
 
-    logger.info(f"Попытка логирования транзакции")
-
     try:
         response = (
             supabase.table("transactions")
@@ -43,7 +42,8 @@ def log_transaction(
                     "sender_id": sender_id,
                     "receiver_id": receiver_id,
                     "amount": amount,
-                    "type": type,
+                    "sender_type": sender_type,
+                    "receiver_type": receiver_type,
                     "comment": comment,
                 }
             )
@@ -51,15 +51,13 @@ def log_transaction(
             .execute()
         )
 
-        logger.info(
-            f"Успешное логирование транзакции | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: {type} | comment: {comment}"
-        )
+        logger.info(f"Успешное логирование транзакции | id: {response.data[0]["id"]}")
 
         return {"transaction": response.data[0]}
 
     except APIError as exc:
         logger.error(
-            f"Ошибка при логировании транзакции: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: {type} | comment: {comment}"
+            f"Ошибка при логировании транзакции: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
         )
 
         return {
@@ -69,7 +67,7 @@ def log_transaction(
 
     except Exception as exc:
         logger.error(
-            f"Ошибка при логировании транзакции: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: {type} | comment: {comment}"
+            f"Ошибка при логировании транзакции: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
         )
 
         return {"error": "Внутренняя ошибка.", "message": exc}
@@ -101,8 +99,6 @@ def transfer(
             * message (str): Детали ошибки
     """
 
-    logger.info(f"Попытка перевода валюты")
-
     try:
         supabase.rpc(
             "transfer",
@@ -114,19 +110,19 @@ def transfer(
             },
         ).execute()
 
+        logger.info(
+            f"Успешный перевод валюты | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
+        )
+
         transaction_log = log_transaction(
             server_id, sender_id, receiver_id, amount, "Перевод", comment
         )
 
-        logger.info(
-            f"Успешный перевод валюты | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: Перевод | comment: {comment}"
-        )
-
-        return {"transaction": transaction_log}
+        return transaction_log
 
     except APIError as exc:
         logger.error(
-            f"Ошибка при переводе валюты: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: Перевод | comment: {comment}"
+            f"Ошибка при переводе валюты: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
         )
 
         return {
@@ -136,7 +132,7 @@ def transfer(
 
     except Exception as exc:
         logger.error(
-            f"Ошибка при переводе валюты: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: Перевод | comment: {comment}"
+            f"Ошибка при переводе валюты: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
         )
 
         return {"error": "Внутренняя ошибка.", "message": exc}
