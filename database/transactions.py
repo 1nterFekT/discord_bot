@@ -115,18 +115,18 @@ def transfer(
         ).execute()
 
         transaction_log = log_transaction(
-            server_id, sender_id, receiver_id, amount, comment
+            server_id, sender_id, receiver_id, amount, "Перевод", comment
         )
 
         logger.info(
-            f"Успешный перевод валюты | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | comment: {comment}"
+            f"Успешный перевод валюты | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: Перевод | comment: {comment}"
         )
 
         return {"transaction": transaction_log}
 
     except APIError as exc:
         logger.error(
-            f"Ошибка при переводе валюты: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | comment: {comment}"
+            f"Ошибка при переводе валюты: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: Перевод | comment: {comment}"
         )
 
         return {
@@ -136,7 +136,7 @@ def transfer(
 
     except Exception as exc:
         logger.error(
-            f"Ошибка при переводе валюты: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | comment: {comment}"
+            f"Ошибка при переводе валюты: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: Перевод | comment: {comment}"
         )
 
         return {"error": "Внутренняя ошибка.", "message": exc}
