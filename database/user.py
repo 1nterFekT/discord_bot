@@ -9,8 +9,8 @@ class User:
     Класс для манипуляции данными юзера в базе данных.
 
     Args:
-        user_id (any): Id юзера.
-        server_id (any): Id сервера.
+        user_id (str | int): Id юзера.
+        server_id (str | int): Id сервера.
     """
 
     def __init__(self, user_id: str | int, server_id: str | int):
