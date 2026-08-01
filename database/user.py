@@ -13,11 +13,11 @@ class User:
         server_id (any): Id сервера.
     """
 
-    def __init__(self, user_id, server_id):
+    def __init__(self, user_id: str | int, server_id: str | int):
         self.user_id = user_id
         self.server_id = server_id
 
-    def get_balance(self):
+    def get_balance(self) -> dict:
         """
         Возвращает баланс юзера.
 
@@ -59,9 +59,9 @@ class User:
                 "message": exc,
             }
 
-    def add_currency(self, amount: int):
+    def add_currency(self, amount: int) -> dict:
         """
-        Добавляет валюту к балансу пользователя с помощью RPC.
+        Добавляет валюту к балансу пользователя.
 
         Args:
             amount (int): Количество валюты которое необходимо добавить.
@@ -92,6 +92,10 @@ class User:
             ).execute()
 
             if response.data is None:
+                logger.error(
+                    f"Ошибка при добавлении валюты пользователю: пользователь не найден в базе данных | user_id: {self.user_id} | server_id: {self.server_id}"
+                )
+
                 return {
                     "error": "Пользователь не найден в базе данных.",
                     "message": "База данных не вернула обновленный баланс.",
@@ -104,20 +108,28 @@ class User:
             return {"balance": response.data}
 
         except APIError as exc:
+            logger.error(
+                f"Ошибка при добавлении валюты пользователю: {exc.message} | user_id: {self.user_id} | server_id: {self.server_id}"
+            )
+
             return {
                 "error": "Ошибка при обращении к базе данных",
                 "message": exc.message,
             }
 
         except Exception as exc:
+            logger.error(
+                f"Ошибка при добавлении валюты пользователю: {exc} | user_id: {self.user_id} | server_id: {self.server_id}"
+            )
+
             return {
                 "error": "Внутренняя ошибка.",
                 "message": exc,
             }
 
-    def remove_currency(self, amount: int):
+    def remove_currency(self, amount: int) -> dict:
         """
-        Отнимает валюту от баланса пользователя.
+        Отнимает валюту от баланса пользователя. Функция не даст балансу пользователя уйти в минус.
 
         Args:
             amount (int): Количество валюты которое нужно отнять.
@@ -148,6 +160,10 @@ class User:
             ).execute()
 
             if response.data is None:
+                logger.error(
+                    f"Ошибка при удалении валюты пользователя: пользователь не найден в базе данных | user_id: {self.user_id} | server_id: {self.server_id}"
+                )
+
                 return {
                     "error": "Пользователь не найден в базе данных.",
                     "message": "База данных не вернула обновленный баланс.",
@@ -160,23 +176,31 @@ class User:
             return {"balance": response.data}
 
         except APIError as exc:
+            logger.error(
+                f"Ошибка при добавлении валюты пользователю: {exc.message} | user_id: {self.user_id} | server_id: {self.server_id}"
+            )
+
             return {
                 "error": "Ошибка при обращении к базе данных",
                 "message": exc.message,
             }
 
         except Exception as exc:
+            logger.error(
+                f"Ошибка при добавлении валюты пользователю: {exc} | user_id: {self.user_id} | server_id: {self.server_id}"
+            )
+
             return {
                 "error": "Внутренняя ошибка.",
                 "message": exc,
             }
 
-    def set_currency(self, amount):
+    def set_currency(self, amount: int) -> dict:
         """
-        Изменяет баланс пользователя. Функция **может** уменьшить баланс пользователя до отрицательных значений.
+        Изменяет баланс пользователя.
 
         Args:
-            amount (int): Новое значение баланса.
+            amount (int): Новое значение баланса. Принимает в себя любое значение, даже если оно отрицательное.
 
         Returns:
             new balance data (dict): Объект с обновленным балансом пользователя.
@@ -203,18 +227,30 @@ class User:
             return {"balance": response.data[0]["balance"]}
 
         except IndexError:
+            logger.error(
+                f"Ошибка при изменении баланса юзера: пользователь не найден в базе данных | user_id: {self.user_id} | server_id: {self.server_id}"
+            )
+
             return {
                 "error": "Пользователь не найден в базе данных.",
                 "message": "База данных вернула пустой массив.",
             }
 
         except APIError as exc:
+            logger.error(
+                f"Ошибка при изменении баланса юзера: {exc.message} | user_id: {self.user_id} | server_id: {self.server_id}"
+            )
+
             return {
                 "error": "Ошибка при обращении к базе данных",
                 "message": exc.message,
             }
 
         except Exception as exc:
+            logger.error(
+                f"Ошибка при изменении баланса юзера: {exc} | user_id: {self.user_id} | server_id: {self.server_id}"
+            )
+
             return {
                 "error": "Внутренняя ошибка.",
                 "message": exc,

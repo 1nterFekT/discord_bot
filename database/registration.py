@@ -4,7 +4,7 @@ from database.client import supabase
 from utils.logger import logger
 
 
-def register_server(server_id):
+def register_server(server_id: str | int) -> dict:
     """
     Добавляет сервер в базу данных по его id.
 
@@ -21,8 +21,6 @@ def register_server(server_id):
             * message (str): Детали ошибки
     """
 
-    logger.info(f"Попытка регистрации нового сервера | server_id: {server_id}")
-
     try:
         servers_table_response = (
             supabase.table("servers")
@@ -38,7 +36,7 @@ def register_server(server_id):
             .execute()
         )
 
-        logger.info(f"Новый сервер добавлен в базу данных | server_id: {server_id}")
+        logger.info(f"Новый сервер добавлен в базу данных: {server_id}")
 
         return {
             "server": servers_table_response.data[0],
@@ -54,15 +52,15 @@ def register_server(server_id):
 
     except Exception as exc:
         logger.error(
-            f"Ошибка при регистрации нового юзера: {exc} | server_id: {server_id}"
+            f"Ошибка при регистрации нового сервера: {exc} | server_id: {server_id}"
         )
 
         return {"error": "Внутренняя ошибка", "message": exc}
 
 
-def register_user(user_id, server_id):
+def register_user(user_id: str | int, server_id: str | int) -> dict:
     """
-    Добавляет юзера в базу данных по его id и id сервера, к которому будет привязан его баланс.
+    Добавляет юзера в базу данных по его id и id сервера, к которому будет привязан баланс.
 
     Args:
         user_id (any): Id юзера для добавления.
@@ -78,10 +76,6 @@ def register_user(user_id, server_id):
             * message (str): Детали ошибки
     """
 
-    logger.info(
-        f"Попытка регистрации нового юзера | user_id: {user_id} | server_id: {server_id}"
-    )
-
     try:
         users_table_response = (
             supabase.table("users").insert({"user_id": user_id}).select("*").execute()
@@ -95,7 +89,7 @@ def register_user(user_id, server_id):
         )
 
         logger.info(
-            f"Новый юзер добавлен в базу данных | user_id: {user_id} | server_id: {server_id})"
+            f"Новый юзер добавлен в базу данных: {user_id} | server_id: {server_id})"
         )
 
         return {
