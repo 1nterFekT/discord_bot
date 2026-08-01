@@ -255,3 +255,39 @@ class User:
                 "error": "Внутренняя ошибка.",
                 "message": exc,
             }
+
+    def get_transactions(self) -> dict:
+        """
+        Возвращает все транзакции пользователя.
+
+        Returns:
+            transactions data (dict): Объект с транзакциями.
+                * transactions (list): Список транзакций.
+
+            error data (dict): Объект с информацией об ошибке.
+                * error (str): Текст ошибки.
+                * message (str): Детали ошибки.
+        """
+
+        try:
+            response = (
+                supabase.table("transactions")
+                .select("*")
+                .eq("server_id", self.server_id)
+                .or_(f"sender_id.eq.{self.user_id},receiver_id.eq.{self.user_id}")
+                .execute()
+            )
+
+            return {"transactions": response.data}
+
+        except APIError as exc:
+            return {
+                "error": "Ошибка при обращении к базе данных",
+                "message": exc.message,
+            }
+
+        except Exception as exc:
+            return {
+                "error": "Внутренняя ошибка.",
+                "message": exc,
+            }

@@ -115,7 +115,11 @@ def transfer(
         )
 
         transaction_log = log_transaction(
-            server_id, sender_id, receiver_id, amount, "Перевод", comment
+            server_id=server_id,
+            sender_id=sender_id,
+            receiver_id=receiver_id,
+            amount=amount,
+            comment=comment,
         )
 
         return transaction_log
