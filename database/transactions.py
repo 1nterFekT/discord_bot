@@ -9,6 +9,7 @@ def log_transaction(
     sender_id: str | int,
     receiver_id: str | int,
     amount: int,
+    type: str = "Перевод",
     comment: str = None,
 ) -> dict:
     """
@@ -19,6 +20,7 @@ def log_transaction(
         sender_id (str | int): Id отправителя.
         receiver_id (str | int): Id получателя.
         amount (int): Сумма транзакции.
+        type (str): Тип транзакции (перевод/выигрыш/проигрыш).
         comment (str): Комментарий транзакции (необязателен).
 
     Returns:
@@ -41,6 +43,7 @@ def log_transaction(
                     "sender_id": sender_id,
                     "receiver_id": receiver_id,
                     "amount": amount,
+                    "type": type,
                     "comment": comment,
                 }
             )
@@ -49,14 +52,14 @@ def log_transaction(
         )
 
         logger.info(
-            f"Успешное логирование транзакции | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | comment: {comment}"
+            f"Успешное логирование транзакции | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: {type} | comment: {comment}"
         )
 
         return {"transaction": response.data[0]}
 
     except APIError as exc:
         logger.error(
-            f"Ошибка при логировании транзакции: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | comment: {comment}"
+            f"Ошибка при логировании транзакции: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: {type} | comment: {comment}"
         )
 
         return {
@@ -66,7 +69,7 @@ def log_transaction(
 
     except Exception as exc:
         logger.error(
-            f"Ошибка при логировании транзакции: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | comment: {comment}"
+            f"Ошибка при логировании транзакции: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id} | amount: {amount} | type: {type} | comment: {comment}"
         )
 
         return {"error": "Внутренняя ошибка.", "message": exc}
