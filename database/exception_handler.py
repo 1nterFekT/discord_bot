@@ -16,7 +16,7 @@ API_ERRORS = {
     },
 }
 
-
+# TODO добавить обработку дубликата ключей при регистрации серверов и юзеров 
 def exception_handler(exc: Exception, func_log: str, args_log: dict = {}):
     """
     Обрабатывает ошибки подаваемые из конструкции try-except.
