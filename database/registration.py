@@ -1,15 +1,80 @@
-from postgrest.exceptions import APIError
-
 from database.client import supabase
+from database.exception_handler import exception_handler
 from utils.logger import logger
 
 
-def register_server(server_id):
+def is_server_registered(server_id: str | int) -> dict:
+    """
+    Проверяет зарегистрирован ли сервер в базе данных.
+
+    Args:
+        server_id (str | int): Id сервера для проверки.
+
+    Returns:
+        server registration data (dict): Объект с данными о регистрации сервера.
+            * 'registration_state' (bool): Статус регистрации сервера (True/False).
+
+        error data (dict): Объект с информацией об ошибке.
+            * error (str): Текст ошибки.
+            * message (str): Детали ошибки
+    """
+
+    try:
+        response = (
+            supabase.table("servers").select("*").eq("server_id", server_id).execute()
+        )
+
+        if len(response.data) == 0:
+            return {"registration_state": False}
+
+        return {"registration_state": True}
+
+    except Exception as exc:
+        return exception_handler(
+            exc=exc,
+            func_log="registration.is_server_registered",
+            args_log={"server_id": server_id},
+        )
+
+
+def is_user_registered(user_id: str | int) -> dict:
+    """
+    Проверяет зарегистрирован ли юзер в базе данных.
+
+    Args:
+        user_id (str | int): Id юзера для проверки.
+
+    Returns:
+        user registration data (dict): Объект с данными о регистрации юзера.
+            * 'registration_state' (bool): Статус регистрации юзера (True/False).
+
+        error data (dict): Объект с информацией об ошибке.
+            * error (str): Текст ошибки.
+            * message (str): Детали ошибки
+    """
+
+    try:
+        response = supabase.table("users").select("*").eq("user_id", user_id).execute()
+
+        if len(response.data) == 0:
+            return {"registration_state": False}
+
+        return {"registration_state": True}
+
+    except Exception as exc:
+        return exception_handler(
+            exc=exc,
+            func_log="registration.is_user_registered",
+            args_log={"server_id": user_id},
+        )
+
+
+def register_server(server_id: str | int) -> dict:
     """
     Добавляет сервер в базу данных по его id.
 
     Args:
-        server_id (any): Id сервера для добавления.
+        server_id (str | int): Id сервера для добавления.
 
     Returns:
         server data (dict): Объект с данными сервера из базы данных при успешной регистрации.
@@ -20,8 +85,6 @@ def register_server(server_id):
             * error (str): Текст ошибки.
             * message (str): Детали ошибки
     """
-
-    logger.info(f"Попытка регистрации нового сервера | server_id: {server_id}")
 
     try:
         servers_table_response = (
@@ -38,35 +101,28 @@ def register_server(server_id):
             .execute()
         )
 
-        logger.info(f"Новый сервер добавлен в базу данных | server_id: {server_id}")
+        logger.info(f"Новый сервер добавлен в базу данных: {server_id}")
 
         return {
             "server": servers_table_response.data[0],
             "settings": settings_table_response.data[0],
         }
 
-    except APIError as exc:
-        logger.error(
-            f"Ошибка при регистрации нового сервера: {exc.message} | server_id: {server_id}"
-        )
-
-        return {"error": "Ошибка при обращении к базе данных.", "message": exc.message}
-
     except Exception as exc:
-        logger.error(
-            f"Ошибка при регистрации нового юзера: {exc} | server_id: {server_id}"
+        return exception_handler(
+            exc=exc,
+            func_log="registration.register_server",
+            args_log={"server_id": server_id},
         )
 
-        return {"error": "Внутренняя ошибка", "message": exc}
 
-
-def register_user(user_id, server_id):
+def register_user(user_id: str | int, server_id: str | int) -> dict:
     """
-    Добавляет юзера в базу данных по его id и id сервера, к которому будет привязан его баланс.
+    Добавляет юзера в базу данных по его id и id сервера, к которому будет привязан баланс.
 
     Args:
-        user_id (any): Id юзера для добавления.
-        server_id (any): Id сервера для добавления.
+        user_id (str | int): Id юзера для добавления.
+        server_id (str | int): Id сервера для добавления.
 
     Returns:
         user data (dict): Объект с данными юзера из базы данных при успешной регистрации.
@@ -77,10 +133,6 @@ def register_user(user_id, server_id):
             * error (str): Текст ошибки.
             * message (str): Детали ошибки
     """
-
-    logger.info(
-        f"Попытка регистрации нового юзера | user_id: {user_id} | server_id: {server_id}"
-    )
 
     try:
         users_table_response = (
@@ -95,7 +147,7 @@ def register_user(user_id, server_id):
         )
 
         logger.info(
-            f"Новый юзер добавлен в базу данных | user_id: {user_id} | server_id: {server_id})"
+            f"Новый юзер добавлен в базу данных: {user_id} | server_id: {server_id})"
         )
 
         return {
@@ -103,16 +155,9 @@ def register_user(user_id, server_id):
             "balance": balances_table_response.data[0],
         }
 
-    except APIError as exc:
-        logger.error(
-            f"Ошибка при регистрации нового юзера: {exc.message} | user_id: {user_id} | server_id: {server_id}"
-        )
-
-        return {"error": "Ошибка при обращении к базе данных.", "message": exc.message}
-
     except Exception as exc:
-        logger.error(
-            f"Ошибка при регистрации нового юзера: {exc} | user_id: {user_id} | server_id: {server_id}"
+        return exception_handler(
+            exc=exc,
+            func_log="registration.register_user",
+            args_log={"user_id": user_id, "server_id": server_id},
         )
-
-        return {"error": "Внутренняя ошибка", "message": exc}
