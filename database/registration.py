@@ -1,6 +1,5 @@
-from postgrest.exceptions import APIError
-
 from database.client import supabase
+from database.exception_handler import exception_handler
 from utils.logger import logger
 
 
@@ -30,19 +29,12 @@ def is_server_registered(server_id: str | int) -> dict:
 
         return {"registration_state": True}
 
-    except APIError as exc:
-        logger.error(
-            f"Ошибка при проверке регистрации сервера: {exc.message} | server_id: {server_id}"
-        )
-
-        return {"error": "Ошибка при обращении к базе данных.", "message": exc.message}
-
     except Exception as exc:
-        logger.error(
-            f"Ошибка при проверке регистрации сервера: {exc} | server_id: {server_id}"
+        return exception_handler(
+            exc=exc,
+            func_log="registration.is_server_registered",
+            args_log={"server_id": server_id},
         )
-
-        return {"error": "Внутренняя ошибка", "message": exc}
 
 
 def is_user_registered(user_id: str | int) -> dict:
@@ -69,19 +61,12 @@ def is_user_registered(user_id: str | int) -> dict:
 
         return {"registration_state": True}
 
-    except APIError as exc:
-        logger.error(
-            f"Ошибка при проверке регистрации сервера: {exc.message} | user_id: {user_id}"
-        )
-
-        return {"error": "Ошибка при обращении к базе данных.", "message": exc.message}
-
     except Exception as exc:
-        logger.error(
-            f"Ошибка при проверке регистрации сервера: {exc} | user_id: {user_id}"
+        return exception_handler(
+            exc=exc,
+            func_log="registration.is_user_registered",
+            args_log={"server_id": user_id},
         )
-
-        return {"error": "Внутренняя ошибка", "message": exc}
 
 
 def register_server(server_id: str | int) -> dict:
@@ -123,19 +108,12 @@ def register_server(server_id: str | int) -> dict:
             "settings": settings_table_response.data[0],
         }
 
-    except APIError as exc:
-        logger.error(
-            f"Ошибка при регистрации нового сервера: {exc.message} | server_id: {server_id}"
-        )
-
-        return {"error": "Ошибка при обращении к базе данных.", "message": exc.message}
-
     except Exception as exc:
-        logger.error(
-            f"Ошибка при регистрации нового сервера: {exc} | server_id: {server_id}"
+        return exception_handler(
+            exc=exc,
+            func_log="registration.register_server",
+            args_log={"server_id": server_id},
         )
-
-        return {"error": "Внутренняя ошибка", "message": exc}
 
 
 def register_user(user_id: str | int, server_id: str | int) -> dict:
@@ -177,16 +155,9 @@ def register_user(user_id: str | int, server_id: str | int) -> dict:
             "balance": balances_table_response.data[0],
         }
 
-    except APIError as exc:
-        logger.error(
-            f"Ошибка при регистрации нового юзера: {exc.message} | user_id: {user_id} | server_id: {server_id}"
-        )
-
-        return {"error": "Ошибка при обращении к базе данных.", "message": exc.message}
-
     except Exception as exc:
-        logger.error(
-            f"Ошибка при регистрации нового юзера: {exc} | user_id: {user_id} | server_id: {server_id}"
+        return exception_handler(
+            exc=exc,
+            func_log="registration.register_user",
+            args_log={"user_id": user_id, "server_id": server_id},
         )
-
-        return {"error": "Внутренняя ошибка", "message": exc}

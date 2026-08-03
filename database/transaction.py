@@ -1,6 +1,5 @@
-from postgrest.exceptions import APIError
-
 from database.client import supabase
+from database.exception_handler import exception_handler
 from utils.logger import logger
 
 
@@ -26,7 +25,6 @@ def log_transaction(
 
     Returns:
         transaction data (dict): Объект с информацией о транзакции.
-            * transaction (dict): Информация о транзакции.
 
         error data (dict): Объект с информацией об ошибке.
             * error (str): Текст ошибки.
@@ -53,24 +51,18 @@ def log_transaction(
 
         logger.info(f"Успешное логирование транзакции | id: {response.data[0]["id"]}")
 
-        return {"transaction": response.data[0]}
-
-    except APIError as exc:
-        logger.error(
-            f"Ошибка при логировании транзакции: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
-        )
-
-        return {
-            "error": "Ошибка при обращении к базе данных.",
-            "message": exc.message,
-        }
+        return response.data[0]
 
     except Exception as exc:
-        logger.error(
-            f"Ошибка при логировании транзакции: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
+        return exception_handler(
+            exc=exc,
+            func_log="transaction.log_transaction",
+            args_log={
+                "server_id": server_id,
+                "sender_id": sender_id,
+                "receiver_id": receiver_id,
+            },
         )
-
-        return {"error": "Внутренняя ошибка.", "message": exc}
 
 
 def transfer(
@@ -92,7 +84,6 @@ def transfer(
 
     Returns:
         transaction data (dict): Объект с информацией о транзакции.
-            * transaction (dict): Информация о транзакции.
 
         error data (dict): Объект с информацией об ошибке.
             * error (str): Текст ошибки.
@@ -124,19 +115,13 @@ def transfer(
 
         return transaction_log
 
-    except APIError as exc:
-        logger.error(
-            f"Ошибка при переводе валюты: {exc.message} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
-        )
-
-        return {
-            "error": "Ошибка при обращении к базе данных.",
-            "message": exc.message,
-        }
-
     except Exception as exc:
-        logger.error(
-            f"Ошибка при переводе валюты: {exc} | server_id: {server_id} | sender_id: {sender_id} | receiver_id: {receiver_id}"
+        return exception_handler(
+            exc=exc,
+            func_log="registration.is_server_registered",
+            args_log={
+                "server_id": server_id,
+                "sender_id": sender_id,
+                "receiver_id": receiver_id,
+            },
         )
-
-        return {"error": "Внутренняя ошибка.", "message": exc}
