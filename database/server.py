@@ -1,7 +1,6 @@
-from postgrest.exceptions import APIError
-
 from utils.logger import logger
 from database.client import supabase
+from database.exception_handler import exception_handler
 
 
 class Server:
@@ -72,43 +71,12 @@ class Server:
 
             return {"work": response.data[0]}
 
-        except APIError as exc:
-            if exc.code == "23505":
-                return {
-                    "error": "Название уже занято.",
-                    "message": "Работа с таким названием уже создана на этом сервере.",
-                }
-
-            if "works_min_payout_check" in exc.message:
-                return {
-                    "error": "Некорректное минимальное вознаграждение.",
-                    "message": "Минимальное вознаграждение должно быть больше или равно нулю.",
-                }
-
-            if "works_max_payout_check" in exc.message:
-                return {
-                    "error": "Некорректное максимальное вознаграждение.",
-                    "message": "Максимальное вознаграждение должно быть строго больше минимального.",
-                }
-
-            logger.error(
-                f"Ошибка базы данных при создании новой работы: {exc.message} | server_id: {self.server_id}"
-            )
-
-            return {
-                "error": "Ошибка при обращении к базе данных.",
-                "message": exc.message,
-            }
-
         except Exception as exc:
-            logger.error(
-                f"Внутренняя ошибка при создании новой работы: {exc} | server_id: {self.server_id}"
+            return exception_handler(
+                exc=exc,
+                func_log="database.server.add_work",
+                args_log={"server_id": self.server_id},
             )
-
-            return {
-                "error": "Внутренняя ошибка.",
-                "message": exc,
-            }
 
     def remove_work(self, work_name: str) -> dict:
         """
@@ -148,25 +116,12 @@ class Server:
 
             return {"deleted_work": response.data[0]}
 
-        except APIError as exc:
-            logger.error(
-                f"Ошибка базы данных при удалении работы: {exc.message} | server_id: {self.server_id} | work_name: {work_name}"
-            )
-
-            return {
-                "error": "Ошибка при обращении к базе данных.",
-                "message": exc.message,
-            }
-
         except Exception as exc:
-            logger.error(
-                f"Внутренняя ошибка при удалении работы: {exc} | server_id: {self.server_id} | work_name: {work_name}"
+            return exception_handler(
+                exc=exc,
+                func_log="database.server.remove_work",
+                args_log={"server_id": self.server_id},
             )
-
-            return {
-                "error": "Внутренняя ошибка.",
-                "message": exc,
-            }
 
     def edit_work(
         self,
@@ -216,55 +171,24 @@ class Server:
                 .execute()
             )
 
+            if len(response.data) == 0:
+                return {
+                    "error": "Работа не найдена.",
+                    "message": "Работы с указанным названием не существует.",
+                }
+
             logger.info(
                 f"Работа изменена | server_id: {self.server_id} | id: {response.data[0]["id"]}"
             )
 
             return {"work": response.data[0]}
 
-        except APIError as exc:
-            if "works_server_id_name_key" in exc.message:
-                return {
-                    "error": "Название уже занято.",
-                    "message": "Работа с таким названием уже создана на этом сервере.",
-                }
-
-            if "works_min_payout_check" in exc.message:
-                return {
-                    "error": "Некорректное минимальное вознаграждение.",
-                    "message": "Минимальное вознаграждение должно быть больше или равно нулю.",
-                }
-
-            if "works_max_payout_check" in exc.message:
-                return {
-                    "error": "Некорректное максимальное вознаграждение.",
-                    "message": "Максимальное вознаграждение должно быть строго больше минимального.",
-                }
-
-            logger.error(
-                f"Ошибка базы данных при изменении работы: {exc.message} | server_id: {self.server_id} | name: {work_name}"
-            )
-
-            return {
-                "error": "Ошибка при обращении к базе данных.",
-                "message": exc.message,
-            }
-
-        except IndexError:
-            return {
-                "error": "Работа не найдена.",
-                "message": "Работа с указанным названием не найдена.",
-            }
-
         except Exception as exc:
-            logger.error(
-                f"Внутренняя ошибка при изменении работы: {exc} | server_id: {self.server_id} | name: {work_name}"
+            return exception_handler(
+                exc=exc,
+                func_log="database.server.get_all_works",
+                args_log={"server_id": self.server_id},
             )
-
-            return {
-                "error": "Внутренняя ошибка.",
-                "message": exc,
-            }
 
     def get_work(self, work_name: str) -> dict:
         """
@@ -290,33 +214,20 @@ class Server:
                 .execute()
             )
 
+            if len(response.data) == 0:
+                return {
+                    "error": "Работа не найдена.",
+                    "message": "Работа с указанным названием не существует.",
+                }
+
             return response.data[0]
 
-        except APIError as exc:
-            logger.error(
-                f"Ошибка базы данных при получении работы: {exc.message} | server_id: {self.server_id} | name: {work_name}"
-            )
-
-            return {
-                "error": "Ошибка при обращении к базе данных.",
-                "message": exc.message,
-            }
-
-        except IndexError:
-            return {
-                "error": "Работа не найдена.",
-                "message": "Работа с указанным названием не найдена.",
-            }
-
         except Exception as exc:
-            logger.error(
-                f"Внутренняя ошибка при получении работы: {exc.message} | server_id: {self.server_id} | name: {work_name}"
+            return exception_handler(
+                exc=exc,
+                func_log="database.server.get_work",
+                args_log={"server_id": self.server_id, "work_name": work_name},
             )
-
-            return {
-                "error": "Внутренняя ошибка.",
-                "message": exc,
-            }
 
     def get_all_works(self):
         """
@@ -340,21 +251,9 @@ class Server:
 
             return {"works": response.data}
 
-        except APIError as exc:
-            logger.error(
-                f"Ошибка базы данных при получении списка работ: {exc.message} | server_id: {self.server_id}"
-            )
-
-            return {
-                "error": "Ошибка при обращении к базе данных.",
-                "message": exc.message,
-            }
-
         except Exception as exc:
-            logger.error(
-                f"Внутренняя ошибка при получении списка работ: {exc} | server_id: {self.server_id}"
+            return exception_handler(
+                exc=exc,
+                func_log="database.server.get_all_works",
+                args_log={"server_id": self.server_id},
             )
-            return {
-                "error": "Внутренняя ошибка.",
-                "message": exc,
-            }
